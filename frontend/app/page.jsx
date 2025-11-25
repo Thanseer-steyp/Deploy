@@ -1,27 +1,27 @@
 "use client";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
 
 export default function Products() {
-  const router = useRouter()
   const [products, setProducts] = useState([]);
+
+  useEffect(() => {
+    // Load Razorpay script
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    document.body.appendChild(script);
+  }, []);
 
   useEffect(() => {
     const token = localStorage.getItem("access");
 
-    axios.get("http://localhost:8000/api/products/", {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
-    .then((res) => {
-      setProducts(res.data);
-    })
-    .catch(() => {
-      alert("You must login to view products");
-    });
+    axios
+      .get("http://localhost:8000/api/products/", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => setProducts(res.data))
+      .catch(() => alert("You must login to view products"));
   }, []);
 
   return (
@@ -32,6 +32,7 @@ export default function Products() {
           <h3 className="text-black text-center text-lg">{p.name}</h3>
           <h3 className="text-black text-center text-lg">₹{p.price}</h3>
           <img src={p.image} className="w-24" alt="" />
+
           <button
             onClick={() => purchase(p.id)}
             className="p-1 bg-amber-600 mx-auto w-full block"
@@ -40,12 +41,11 @@ export default function Products() {
           </button>
         </div>
       ))}
-
-      <Link href="/login">Login</Link>
-      <Link href="/signup">Signup</Link>
     </div>
   );
 }
+
+// --- Purchase function ---
 async function purchase(productId) {
   const token = localStorage.getItem("access");
 
@@ -53,9 +53,7 @@ async function purchase(productId) {
     "http://localhost:8000/api/create-order/",
     { product_id: productId },
     {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
+      headers: { Authorization: `Bearer ${token}` },
     }
   );
 
@@ -63,20 +61,20 @@ async function purchase(productId) {
     key: res.data.key,
     amount: res.data.amount,
     order_id: res.data.order_id,
+
     handler: async function (response) {
-      await axios.post(
-        "http://localhost:8000/api/verify-payment/",
-        response,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
+      await axios.post("http://localhost:8000/api/verify-payment/", response, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       alert("Payment Successful!");
-    }
+    },
   };
+
+  if (!window.Razorpay) {
+    alert("Razorpay SDK failed to load. Check your internet.");
+    return;
+  }
 
   const rzp = new window.Razorpay(options);
   rzp.open();

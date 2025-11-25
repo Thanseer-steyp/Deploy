@@ -136,8 +136,8 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 
 
-RAZORPAY_KEY_ID = "your_key_id"
-RAZORPAY_KEY_SECRET = "your_key_secret"
+RAZORPAY_KEY_ID = "rzp_test_RjuxivZiT2rO2J"
+RAZORPAY_KEY_SECRET = "HoQdu7d5i7vIsUcvOzK95HT5"
 
 
 
