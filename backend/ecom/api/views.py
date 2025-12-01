@@ -294,43 +294,10 @@ class PasswordResetConfirmView(APIView):
 
             return Response({"message": "Password reset successful"})
         return Response(serializer.errors, status=400)
-
-# class SignupView(APIView):
-#     def post(self, request):
-#         serializer = SignupSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response({"message": "Signup successful"}, status=201)
-#         return Response(serializer.errors, status=400)
-
-
-# class LoginView(APIView):
-#     def post(self, request):
-#         serializer = LoginSerializer(data=request.data)
-        
-#         if not serializer.is_valid():
-#             return Response(serializer.errors, status=400)
-
-#         user = serializer.validated_data
-
-#         refresh = RefreshToken.for_user(user)
-
-#         return Response({
-#             "message": "Login successful",
-#             "access": str(refresh.access_token),
-#             "refresh": str(refresh),
-#             "user": {
-#                 "id": user.id,
-#                 "username": user.username,
-#                 "email": user.email
-#             }
-#         })
-
-
-
+    
 
 class CreateRazorpayOrderView(APIView):
-    permission_classes = [IsAuthenticated]  # JWT required
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         product_id = request.data.get("product_id")
@@ -356,7 +323,7 @@ class CreateRazorpayOrderView(APIView):
         })
 
 class VerifyPaymentView(APIView):
-    permission_classes = [IsAuthenticated]  # JWT required
+    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         payload = request.data
@@ -370,9 +337,11 @@ class VerifyPaymentView(APIView):
 
 
 
-class ProductListView(ListAPIView):
-    queryset = Product.objects.all()
-    serializer_class = ProductSerializer
+class ProductListView(APIView):
+    def get(self, request):
+        products = Product.objects.all()
+        serializer = ProductSerializer(products, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class ProductDetailView(RetrieveAPIView):

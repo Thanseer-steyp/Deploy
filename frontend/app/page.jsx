@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import axiosInstance from "@/components/config/AxiosInstance";
 
 export default function Products() {
   const [products, setProducts] = useState([]);
@@ -16,10 +17,8 @@ export default function Products() {
   useEffect(() => {
     const token = localStorage.getItem("access");
 
-    axios
-      .get("http://localhost:8000/api/products/", {
-        headers: { Authorization: `Bearer ${token}` },
-      })
+    axiosInstance
+      .get("api/products/")
       .then((res) => setProducts(res.data))
       .catch(() => alert("You must login to view products"));
   }, []);
