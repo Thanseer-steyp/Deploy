@@ -46,7 +46,7 @@ function AuthPage() {
       // ---------------- Signup Flow ----------------
       if (!isLogin) {
         if (!otpSent) {
-          await axiosInstance.post("signup-request/", {
+          await axiosInstance.post("register/signup-request/", {
             username: formData.username,
             first_name: formData.name,
             email: formData.email,
@@ -55,7 +55,7 @@ function AuthPage() {
           setMessage("OTP sent to your email. Enter OTP to verify signup.");
           setOtpSent(true);
         } else {
-          await axiosInstance.post("signup-otp-verification/", {
+          await axiosInstance.post("register/signup-otp-verification/", {
             email: formData.email,
             otp: formData.otp,
           });
@@ -68,13 +68,13 @@ function AuthPage() {
       // ---------------- Reset Password Flow ----------------
       else if (resetPassword) {
         if (!otpSent) {
-          await axiosInstance.post("password-reset-otp/", {
+          await axiosInstance.post("register/password-reset-otp/", {
             email: formData.email,
           });
           setMessage("OTP sent to your email");
           setOtpSent(true);
         } else {
-          await axiosInstance.post("password-reset-confirm/", {
+          await axiosInstance.post("register/password-reset-confirm/", {
             email: formData.email,
             otp: formData.otp,
             new_password: formData.newPassword,
@@ -88,7 +88,7 @@ function AuthPage() {
 
       // ---------------- Login with Password ----------------
       else if (isLogin && !useOTP) {
-        const res = await axiosInstance.post("login/", {
+        const res = await axiosInstance.post("register/login/", {
           email: formData.email,
           password: formData.password,
         });
@@ -112,13 +112,13 @@ function AuthPage() {
       // ---------------- Login with OTP ----------------
       else if (isLogin && useOTP) {
         if (!otpSent) {
-          await axiosInstance.post("login-otp-request/", {
+          await axiosInstance.post("register/login-otp-request/", {
             email: formData.email,
           });
           setMessage("OTP sent to your email");
           setOtpSent(true);
         } else {
-          const res = await axiosInstance.post("login-otp-verification/", {
+          const res = await axiosInstance.post("register/login-otp-verification/", {
             email: formData.email,
             otp: formData.otp,
           });
@@ -150,9 +150,9 @@ function AuthPage() {
   const handleResend = async () => {
     try {
       let url = "";
-      if (!isLogin) url = "signup-otp-resend/";
+      if (!isLogin) url = "register/signup-otp-resend/";
       else if (useOTP || resetPassword)
-        url = useOTP ? "login-otp-request/" : "password-reset-otp/";
+        url = useOTP ? "register/login-otp-request/" : "register/password-reset-otp/";
 
       await axiosInstance.post(url, { email: formData.email });
       setMessage("OTP resent successfully");

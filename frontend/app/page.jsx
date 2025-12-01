@@ -18,9 +18,9 @@ export default function Products() {
     const token = localStorage.getItem("access");
 
     axiosInstance
-      .get("api/products/")
+      .get("user/products/")
       .then((res) => setProducts(res.data))
-      .catch(() => alert("You must login to view products"));
+      .catch(console.error);
   }, []);
 
   return (
@@ -48,8 +48,8 @@ export default function Products() {
 async function purchase(productId) {
   const token = localStorage.getItem("access");
 
-  const res = await axios.post(
-    "http://localhost:8000/api/create-order/",
+  const res = await axiosInstance.post(
+    "user/create-order/",
     { product_id: productId },
     {
       headers: { Authorization: `Bearer ${token}` },
@@ -62,7 +62,7 @@ async function purchase(productId) {
     order_id: res.data.order_id,
 
     handler: async function (response) {
-      await axios.post("http://localhost:8000/api/verify-payment/", response, {
+      await axiosInstance.post("user/verify-payment/", response, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

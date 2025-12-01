@@ -22,6 +22,8 @@ INSTALLED_APPS = [
     #My apps
     'rest_framework',
     'corsheaders',
+    'register',
+    'user',
     'api',
 ]
 
