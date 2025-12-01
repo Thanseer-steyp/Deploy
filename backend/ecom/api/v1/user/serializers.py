@@ -1,9 +1,15 @@
+# api/v1/user/serializers.py
 from rest_framework import serializers
-from django.contrib.auth.models import User
-from user.models import Product
+from user.models import ClothProduct, JewelleryProduct
 
 
-class ProductSerializer(serializers.ModelSerializer):
+class ClothProductSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Product
+        model = ClothProduct
+        fields = ['id', 'name', 'price', 'image']
+
+
+class JewelleryProductSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = JewelleryProduct
         fields = ['id', 'name', 'price', 'image']

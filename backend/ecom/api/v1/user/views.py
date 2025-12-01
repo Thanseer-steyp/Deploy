@@ -1,32 +1,77 @@
+# api/v1/user/views.py
 from rest_framework.views import APIView
+from rest_framework.generics import RetrieveAPIView
 from rest_framework.response import Response
 from rest_framework import status
-import razorpay
-from django.conf import settings
-from user.models import Product, Order
-from rest_framework.generics import RetrieveAPIView
-from .serializers import ProductSerializer
 from rest_framework.permissions import IsAuthenticated
-from django.contrib.auth.models import User
 from django.conf import settings
+import razorpay
+
+from user.models import (
+    ClothProduct,
+    JewelleryProduct,
+    Order,
+)
+
+from .serializers import (
+    ClothProductSerializer,
+    JewelleryProductSerializer
+)
+
+
+class ClothProductListView(APIView):
+    def get(self, request):
+        products = ClothProduct.objects.all()
+        serializer = ClothProductSerializer(products, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class JewelleryProductListView(APIView):
+    def get(self, request):
+        products = JewelleryProduct.objects.all()
+        serializer = JewelleryProductSerializer(products, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ClothProductDetailView(RetrieveAPIView):
+    queryset = ClothProduct.objects.all()
+    serializer_class = ClothProductSerializer
+    lookup_field = 'id'
+
+
+class JewelleryProductDetailView(RetrieveAPIView):
+    queryset = JewelleryProduct.objects.all()
+    serializer_class = JewelleryProductSerializer
+    lookup_field = 'id'
 
 
 class CreateRazorpayOrderView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        product_type = request.data.get("product_type")
         product_id = request.data.get("product_id")
-        product = Product.objects.get(id=product_id)
+
+        # fetch correct product
+        if product_type == "cloth":
+            product = ClothProduct.objects.get(id=product_id)
+        elif product_type == "jewellery":
+            product = JewelleryProduct.objects.get(id=product_id)
+        else:
+            return Response({"error": "Invalid product type"}, status=400)
 
         client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+
         razorpay_order = client.order.create({
             "amount": product.price * 100,
             "currency": "INR",
         })
 
-        order = Order.objects.create(
+        # Create Order
+        Order.objects.create(
             user=request.user,
-            product=product,
+            product_type=product_type,
+            product_id=product_id,
             razorpay_order_id=razorpay_order['id']
         )
 
@@ -37,29 +82,16 @@ class CreateRazorpayOrderView(APIView):
             "product": product.name
         })
 
+
 class VerifyPaymentView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        payload = request.data
+        data = request.data
 
-        order = Order.objects.get(razorpay_order_id=payload['razorpay_order_id'])
-        order.razorpay_payment_id = payload['razorpay_payment_id']
+        order = Order.objects.get(razorpay_order_id=data['razorpay_order_id'])
+        order.razorpay_payment_id = data['razorpay_payment_id']
         order.paid = True
         order.save()
 
         return Response({"message": "Payment verified"})
-
-
-
-class ProductListView(APIView):
-    def get(self, request):
-        products = Product.objects.all()
-        serializer = ProductSerializer(products, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-
-class ProductDetailView(RetrieveAPIView):
-    queryset = Product.objects.all()
-    serializer_class = ProductSerializer
-    lookup_field = 'id'
